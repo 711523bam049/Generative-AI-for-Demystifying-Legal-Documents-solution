@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Legal Document Demystifier</title>
+    <style>
+        body { font-family: sans-serif; margin: 20px; }
+        .container { display: flex; gap: 20px; }
+        .pane { flex: 1; border: 1px solid #ccc; padding: 15px; border-radius: 8px; }
+        #upload-form { display: flex; flex-direction: column; gap: 10px; }
+        #loading { display: none; text-align: center; margin-top: 20px; }
+        .disclaimer { font-size: 0.8em; color: #888; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <h1>Legal Document Demystifier</h1>
+    <form id="upload-form" enctype="multipart/form-data">
+        <label for="document">Upload a PDF document:</label>
+        <input type="file" id="document" name="document" accept=".pdf" required>
+        <button type="submit">Analyze Document</button>
+    </form>
+
+    <div id="loading">
+        <p>Analyzing document, please wait...</p>
+    </div>
+
+    <div class="container" id="results-container" style="display:none;">
+        <div class="pane">
+            <h2>Original Document</h2>
+            <pre id="original-text"></pre>
+        </div>
+        <div class="pane">
+            <h2>AI-Generated Summary</h2>
+            <pre id="summary-text"></pre>
+        </div>
+    </div>
+
+    <p class="disclaimer">This tool provides informational summaries and is not a substitute for professional legal advice.</p>
+
+    <script>
+        document.getElementById('upload-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const form = e.target;
+            const formData = new FormData(form);
+
+            document.getElementById('upload-form').style.display = 'none';
+            document.getElementById('results-container').style.display = 'none';
+            document.getElementById('loading').style.display = 'block';
+
+            try {
+                const response = await fetch('/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                const result = await response.json();
+                
+                document.getElementById('loading').style.display = 'none';
+                
+                if (response.ok) {
+                    document.getElementById('original-text').textContent = result.original_text;
+                    document.getElementById('summary-text').textContent = result.summary;
+                    document.getElementById('results-container').style.display = 'flex';
+                } else {
+                    alert('Error: ' + result.error);
+                    document.getElementById('upload-form').style.display = 'block';
+                }
+            } catch (error) {
+                document.getElementById('loading').style.display = 'none';
+                alert('An error occurred. Please try again.');
+                document.getElementById('upload-form').style.display = 'block';
+            }
+        });
+    </script>
+</body>
+</html>
